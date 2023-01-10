@@ -18,7 +18,7 @@ class TreeStore:
                 self._items_children_items[item["id"]] = set()
                 continue
             parent_item_id :int = self._obj_list[self._items_ids[item["parent"]]]["id"]
-            self._items_children_items[parent_item_id] :set() = self._items_children_items \
+            self._items_children_items[parent_item_id] :set = self._items_children_items \
                                                                 .get(parent_item_id, set())
             self._items_children_items[parent_item_id].add(item["id"])
             
