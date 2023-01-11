@@ -12,24 +12,30 @@ class TreeStore:
     def _create_indexes(self, obj_list :List[dict]) -> None:
         """ Индексирования списка """
         
-        self._items_ids = {item["id"]:index for index, item in enumerate(obj_list)}
         for item in obj_list:
+            self._items_ids[item["id"]] = item
             if item["parent"] == "root":
                 self._items_children_items[item["id"]] = set()
                 continue
-            parent_item_id :int = self._obj_list[self._items_ids[item["parent"]]]["id"]
-            self._items_children_items[parent_item_id] :set = self._items_children_items \
-                                                                .get(parent_item_id, set())
-            self._items_children_items[parent_item_id].add(item["id"])
+            self._update_children(item["id"], item["parent"])
             
-            """
+                
+    def _update_children(self, item_id :int, parent_id :int ) -> None:
+        """ Обновление дочерних элементов """
+        
+        parent_item_id :int = self._items_ids[parent_id]["id"]
+        self._items_children_items[parent_item_id] :set = self._items_children_items \
+                                                            .get(parent_item_id, set())
+        self._items_children_items[parent_item_id].add(item_id)
+        
+        """
             Пояснение к выбору типа для хранения id:
             Выбрал set исходя из того, что при удалении в худшех случаях у массива будет O(n), а у set O(1).
             Также при добавлении в конец массива количество операций O(1),
             но  можент увеличиться в случае выделения доп.памяти, а у set O(1) всегда.
             Но это без учета возможных коллизий в set
             """
-        
+    
     def get_all(self) -> List[dict]:
         """ Получение всех элементов списка """
         
@@ -38,7 +44,7 @@ class TreeStore:
     def get_item(self, id :int) -> dict:
         """ Получение элемента по id """
         try:
-            return self._obj_list[self._items_ids[id]]
+            return self._items_ids[id]
         except KeyError:
             return None
 
@@ -61,7 +67,15 @@ class TreeStore:
             item :dict = self.get_item(item["parent"])
             parent_items.append(item)
         return parent_items
-            
+    
+    def set_item(self, item :dict) -> None:
+        """ Вставка элемента """
+        
+        self._obj_list.append(item)
+        self._items_ids[item["id"]] = item
+        self._update_children(item["id"], item["parent"])
+
+                    
 
 
 items = [
@@ -80,3 +94,9 @@ print(ts.get_all())
 print(ts.get_item(7))
 print(ts.get_children(4))
 print(ts.get_all_parents(7))
+ts.set_item({"id": 9, "parent": 5, "type": 1234})
+ts.set_item({"id": 10, "parent": 5, "type": 1234})
+ts.set_item({"id": 11, "parent": 5, "type": 1234})
+ts.set_item({"id": 12, "parent": 4, "type": 1})
+print(ts.get_children(5))
+
